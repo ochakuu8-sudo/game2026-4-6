@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta property="og:title" content="Bubble Pop! - バブルポップゲーム">
+<meta property="og:description" content="泡を弾いてハイスコアを狙え！シンプルで中毒性抜群のカジュアルゲーム🫧">
+<meta property="og:type" content="website">
+<title>Bubble Pop! 🫧</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    overflow: hidden;
+    touch-action: none;
+  }
+
+  h1 {
+    color: #fff;
+    font-size: clamp(2rem, 6vw, 3.5rem);
+    text-align: center;
+    text-shadow: 0 0 30px rgba(150, 100, 255, 0.8);
+    letter-spacing: 0.05em;
+    margin-bottom: 8px;
+  }
+
+  .subtitle {
+    color: rgba(255,255,255,0.6);
+    font-size: clamp(0.85rem, 2.5vw, 1.1rem);
+    text-align: center;
+    margin-bottom: 24px;
+  }
+
+  #game-area {
+    position: relative;
+    width: min(480px, 96vw);
+    height: min(560px, 62vh);
+    background: rgba(255,255,255,0.04);
+    border-radius: 24px;
+    border: 1px solid rgba(255,255,255,0.12);
+    overflow: hidden;
+    box-shadow: 0 8px 48px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
+    cursor: crosshair;
+  }
+
+  #game-area::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 50% 0%, rgba(120,80,255,0.15) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .hud {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: min(480px, 96vw);
+    padding: 12px 4px;
+  }
+
+  .stat-box {
+    text-align: center;
+    flex: 1;
+  }
+
+  .stat-label {
+    color: rgba(255,255,255,0.5);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .stat-value {
+    color: #fff;
+    font-size: clamp(1.4rem, 4vw, 2rem);
+    font-weight: 700;
+    line-height: 1.1;
+  }
+
+  #timer-bar-wrap {
+    width: min(480px, 96vw);
+    height: 6px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 10px;
+  }
+
+  #timer-bar {
+    height: 100%;
+    width: 100%;
+    background: linear-gradient(90deg, #a855f7, #06b6d4);
+    border-radius: 3px;
+    transition: width 0.1s linear, background 0.5s;
+  }
+
+  #timer-bar.danger {
+    background: linear-gradient(90deg, #ef4444, #f97316);
+    animation: pulse-bar 0.5s ease-in-out infinite alternate;
+  }
+
+  @keyframes pulse-bar {
+    from { opacity: 1; }
+    to { opacity: 0.5; }
+  }
+
+  /* Bubbles */
+  .bubble {
+    position: absolute;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: rgba(255,255,255,0.9);
+    text-shadow: 0 1px 3px rgba(0,0,0,0.4);
+    animation: float-up linear forwards;
+    will-change: transform, opacity;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  .bubble::after {
+    content: '';
+    position: absolute;
+    top: 15%;
+    left: 20%;
+    width: 30%;
+    height: 25%;
+    background: rgba(255,255,255,0.35);
+    border-radius: 50%;
+    transform: rotate(-30deg);
+  }
+
+  @keyframes float-up {
+    0%   { transform: translateY(0) scale(1); opacity: 0.9; }
+    80%  { opacity: 0.9; }
+    100% { transform: translateY(-640px) scale(0.7); opacity: 0; }
+  }
+
+  .bubble.popped {
+    animation: pop 0.25s ease-out forwards !important;
+    pointer-events: none;
+  }
+
+  @keyframes pop {
+    0%   { transform: scale(1); opacity: 1; }
+    50%  { transform: scale(1.5); opacity: 0.8; }
+    100% { transform: scale(0); opacity: 0; }
+  }
+
+  /* Score popup */
+  .score-popup {
+    position: absolute;
+    color: #fff;
+    font-size: 1.4rem;
+    font-weight: 800;
+    pointer-events: none;
+    animation: score-float 0.8s ease-out forwards;
+    text-shadow: 0 0 12px currentColor;
+    z-index: 10;
+  }
+
+  @keyframes score-float {
+    0%   { transform: translateY(0) scale(1); opacity: 1; }
+    100% { transform: translateY(-60px) scale(0.8); opacity: 0; }
+  }
+
+  /* Overlay screens */
+  .overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    background: rgba(10, 8, 30, 0.85);
+    backdrop-filter: blur(6px);
+    border-radius: 24px;
+    z-index: 20;
+    padding: 24px;
+  }
+
+  .overlay h2 {
+    color: #fff;
+    font-size: clamp(1.8rem, 6vw, 2.8rem);
+    text-align: center;
+    text-shadow: 0 0 24px rgba(168, 85, 247, 0.9);
+  }
+
+  .overlay .big-score {
+    font-size: clamp(3rem, 10vw, 5rem);
+    font-weight: 900;
+    color: #a855f7;
+    text-shadow: 0 0 40px rgba(168, 85, 247, 0.8);
+    line-height: 1;
+  }
+
+  .overlay .result-row {
+    display: flex;
+    gap: 32px;
+    color: rgba(255,255,255,0.7);
+    font-size: 0.95rem;
+  }
+
+  .overlay .result-row span strong {
+    color: #fff;
+    font-size: 1.2rem;
+  }
+
+  .overlay p {
+    color: rgba(255,255,255,0.65);
+    font-size: clamp(0.85rem, 2.5vw, 1rem);
+    text-align: center;
+    line-height: 1.6;
+  }
+
+  .btn {
+    padding: 14px 36px;
+    border: none;
+    border-radius: 50px;
+    font-size: clamp(1rem, 3vw, 1.2rem);
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+    letter-spacing: 0.03em;
+  }
+
+  .btn:hover  { transform: translateY(-2px); }
+  .btn:active { transform: scale(0.96); }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #a855f7, #6366f1);
+    color: #fff;
+    box-shadow: 0 4px 20px rgba(168, 85, 247, 0.5);
+  }
+
+  .btn-x {
+    background: #000;
+    color: #fff;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 28px;
+  }
+
+  .btn-x svg { flex-shrink: 0; }
+
+  .btn-row { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+
+  /* Particles */
+  .particle {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    pointer-events: none;
+    animation: particle-burst 0.6s ease-out forwards;
+  }
+
+  @keyframes particle-burst {
+    0%   { transform: translate(0,0) scale(1); opacity: 1; }
+    100% { transform: translate(var(--dx), var(--dy)) scale(0); opacity: 0; }
+  }
+
+  /* Combo indicator */
+  #combo-display {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    color: #ffd700;
+    font-size: 1.1rem;
+    font-weight: 800;
+    text-shadow: 0 0 16px rgba(255, 215, 0, 0.8);
+    opacity: 0;
+    transition: opacity 0.3s;
+    z-index: 5;
+    pointer-events: none;
+  }
+
+  #combo-display.show { opacity: 1; }
+
+  /* Ripple effect */
+  .ripple {
+    position: absolute;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.6);
+    animation: ripple-out 0.4s ease-out forwards;
+    pointer-events: none;
+  }
+
+  @keyframes ripple-out {
+    from { transform: scale(1); opacity: 0.7; }
+    to   { transform: scale(2.5); opacity: 0; }
+  }
+
+  /* New high score flash */
+  #new-hs {
+    color: #ffd700;
+    font-size: 1rem;
+    font-weight: 700;
+    text-shadow: 0 0 12px rgba(255,215,0,0.8);
+    animation: hs-flash 0.8s ease-in-out infinite alternate;
+  }
+
+  @keyframes hs-flash {
+    from { opacity: 1; transform: scale(1); }
+    to   { opacity: 0.6; transform: scale(1.05); }
+  }
+</style>
+</head>
+<body>
+
+<h1>Bubble Pop! 🫧</h1>
+<p class="subtitle">泡を弾いてハイスコアを目指せ！</p>
+
+<div class="hud">
+  <div class="stat-box">
+    <div class="stat-label">スコア</div>
+    <div class="stat-value" id="score-display">0</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-label">コンボ</div>
+    <div class="stat-value" id="combo-stat">×1</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-label">ベスト</div>
+    <div class="stat-value" id="best-display">0</div>
+  </div>
+</div>
+
+<div id="timer-bar-wrap">
+  <div id="timer-bar"></div>
+</div>
+
+<div id="game-area">
+  <div id="combo-display"></div>
+
+  <!-- Start Screen -->
+  <div class="overlay" id="screen-start">
+    <h2>Bubble Pop! 🫧</h2>
+    <p>泡をタップ・クリックしてポップ！<br>コンボでスコアがアップ⤴️<br>時間内にできるだけ多く弾こう！</p>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="btn-start">ゲームスタート</button>
+    </div>
+  </div>
+
+  <!-- Game Over Screen -->
+  <div class="overlay" id="screen-gameover" style="display:none">
+    <h2>タイムアップ！</h2>
+    <div class="big-score" id="final-score">0</div>
+    <div class="result-row">
+      <span>泡 <strong id="final-bubbles">0</strong> 個</span>
+      <span>最大コンボ <strong id="final-combo">0</strong></span>
+    </div>
+    <div id="new-hs" style="display:none">★ 新ハイスコア！ ★</div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="btn-retry">もう一度</button>
+      <button class="btn btn-x" id="btn-share">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+        Xでシェア
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── Config ───────────────────────────────────────────────
+const GAME_DURATION = 30; // seconds
+const BUBBLE_COLORS = [
+  { bg: 'rgba(168,85,247,0.75)', glow: '#a855f7' },
+  { bg: 'rgba(99,102,241,0.75)', glow: '#6366f1' },
+  { bg: 'rgba(6,182,212,0.75)',  glow: '#06b6d4' },
+  { bg: 'rgba(236,72,153,0.75)', glow: '#ec4899' },
+  { bg: 'rgba(245,158,11,0.75)', glow: '#f59e0b' },
+  { bg: 'rgba(16,185,129,0.75)', glow: '#10b981' },
+  { bg: 'rgba(239,68,68,0.75)',  glow: '#ef4444' },
+];
+const SPECIAL_CHANCE = 0.12; // 12% chance of star bubble
+
+// ─── State ────────────────────────────────────────────────
+let score = 0, highScore = 0, combo = 0, maxCombo = 0;
+let bubblesPopped = 0;
+let timeLeft = GAME_DURATION;
+let gameRunning = false;
+let spawnTimer = null, gameTimer = null, tickTimer = null;
+let comboResetTimer = null;
+let activeBubbles = [];
+
+// ─── DOM ──────────────────────────────────────────────────
+const area       = document.getElementById('game-area');
+const scoreEl    = document.getElementById('score-display');
+const bestEl     = document.getElementById('best-display');
+const comboStat  = document.getElementById('combo-stat');
+const timerBar   = document.getElementById('timer-bar');
+const comboDisp  = document.getElementById('combo-display');
+const screenStart= document.getElementById('screen-start');
+const screenOver = document.getElementById('screen-gameover');
+const finalScore = document.getElementById('final-score');
+const finalBub   = document.getElementById('final-bubbles');
+const finalCombo = document.getElementById('final-combo');
+const newHsEl    = document.getElementById('new-hs');
+
+// Load high score
+highScore = parseInt(localStorage.getItem('bubblePop_hs') || '0');
+bestEl.textContent = highScore;
+
+// ─── Start / Restart ──────────────────────────────────────
+document.getElementById('btn-start').addEventListener('click', startGame);
+document.getElementById('btn-retry').addEventListener('click', startGame);
+document.getElementById('btn-share').addEventListener('click', shareOnX);
+
+function startGame() {
+  score = 0; combo = 0; maxCombo = 0; bubblesPopped = 0;
+  timeLeft = GAME_DURATION;
+  gameRunning = true;
+
+  scoreEl.textContent = '0';
+  comboStat.textContent = '×1';
+  timerBar.style.width = '100%';
+  timerBar.classList.remove('danger');
+
+  screenStart.style.display = 'none';
+  screenOver.style.display  = 'none';
+
+  // Remove leftover bubbles
+  area.querySelectorAll('.bubble, .score-popup, .particle, .ripple').forEach(el => el.remove());
+  activeBubbles = [];
+
+  clearInterval(spawnTimer);
+  clearInterval(tickTimer);
+
+  spawnTimer = setInterval(spawnBubble, getSpawnInterval());
+  spawnBubble();
+
+  let elapsed = 0;
+  tickTimer = setInterval(() => {
+    elapsed += 100;
+    timeLeft = Math.max(0, GAME_DURATION - elapsed / 1000);
+    const pct = timeLeft / GAME_DURATION;
+    timerBar.style.width = (pct * 100) + '%';
+    if (pct < 0.3) timerBar.classList.add('danger');
+    // Increase spawn rate over time
+    clearInterval(spawnTimer);
+    spawnTimer = setInterval(spawnBubble, getSpawnInterval(elapsed / 1000));
+    if (timeLeft <= 0) endGame();
+  }, 100);
+}
+
+function getSpawnInterval(elapsed = 0) {
+  const base = 900;
+  const minInterval = 280;
+  return Math.max(minInterval, base - elapsed * 18);
+}
+
+// ─── Spawn Bubble ─────────────────────────────────────────
+function spawnBubble() {
+  if (!gameRunning) return;
+
+  const isSpecial = Math.random() < SPECIAL_CHANCE;
+  const color = BUBBLE_COLORS[Math.floor(Math.random() * BUBBLE_COLORS.length)];
+  const size = isSpecial
+    ? 52 + Math.random() * 16
+    : 40 + Math.random() * 30;
+  const duration = 2.5 + Math.random() * 2.5;
+  const areaW = area.clientWidth;
+  const x = size / 2 + Math.random() * (areaW - size);
+  const y = area.clientHeight - size / 2;
+
+  const b = document.createElement('div');
+  b.className = 'bubble';
+  b.style.cssText = `
+    width:${size}px; height:${size}px;
+    left:${x - size/2}px; top:${y - size/2}px;
+    background: radial-gradient(circle at 35% 35%, rgba(255,255,255,0.25), ${color.bg});
+    box-shadow: 0 0 ${isSpecial ? 20 : 12}px ${color.glow}, inset 0 0 8px rgba(255,255,255,0.15);
+    animation-duration: ${duration}s;
+    font-size: ${size * 0.42}px;
+  `;
+  b.textContent = isSpecial ? '⭐' : '';
+  b.dataset.points = isSpecial ? 30 : Math.round(size * 0.5);
+  b.dataset.glow = color.glow;
+
+  b.addEventListener('pointerdown', onBubblePop, { passive: true });
+  area.appendChild(b);
+  activeBubbles.push(b);
+
+  b.addEventListener('animationend', () => {
+    if (!b.classList.contains('popped')) {
+      // Missed bubble — break combo
+      breakCombo();
+      b.remove();
+      activeBubbles = activeBubbles.filter(x => x !== b);
+    }
+  });
+}
+
+// ─── Pop ──────────────────────────────────────────────────
+function onBubblePop(e) {
+  if (!gameRunning) return;
+  const b = e.currentTarget;
+  if (b.classList.contains('popped')) return;
+  b.classList.add('popped');
+  activeBubbles = activeBubbles.filter(x => x !== b);
+
+  combo++;
+  if (combo > maxCombo) maxCombo = combo;
+  clearTimeout(comboResetTimer);
+  comboResetTimer = setTimeout(breakCombo, 2200);
+
+  const pts = parseInt(b.dataset.points) * Math.min(combo, 8);
+  score += pts;
+  bubblesPopped++;
+
+  scoreEl.textContent = score;
+  comboStat.textContent = '×' + Math.min(combo, 8);
+
+  // Combo overlay
+  if (combo >= 3) {
+    comboDisp.textContent = combo >= 8 ? '🔥 MAX COMBO ×8!' : `COMBO ×${combo}!`;
+    comboDisp.classList.add('show');
+    clearTimeout(comboDisp._t);
+    comboDisp._t = setTimeout(() => comboDisp.classList.remove('show'), 900);
+  }
+
+  // Score popup
+  const rect = b.getBoundingClientRect();
+  const areaRect = area.getBoundingClientRect();
+  const px = rect.left - areaRect.left + rect.width / 2;
+  const py = rect.top  - areaRect.top;
+  showScorePopup(px, py, pts, b.dataset.glow);
+
+  // Particles
+  spawnParticles(px + rect.width / 2 - 4, py + rect.height / 2, b.dataset.glow);
+
+  // Ripple
+  const rip = document.createElement('div');
+  rip.className = 'ripple';
+  rip.style.cssText = `width:${b.offsetWidth}px;height:${b.offsetHeight}px;left:${px - b.offsetWidth/2}px;top:${py}px;border-color:${b.dataset.glow};`;
+  area.appendChild(rip);
+  rip.addEventListener('animationend', () => rip.remove());
+
+  b.addEventListener('animationend', () => b.remove(), { once: true });
+}
+
+function showScorePopup(x, y, pts, color) {
+  const el = document.createElement('div');
+  el.className = 'score-popup';
+  el.textContent = '+' + pts;
+  el.style.cssText = `left:${x - 20}px;top:${y - 10}px;color:${color};`;
+  area.appendChild(el);
+  el.addEventListener('animationend', () => el.remove());
+}
+
+function spawnParticles(x, y, color) {
+  for (let i = 0; i < 8; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const angle = (i / 8) * Math.PI * 2;
+    const dist = 30 + Math.random() * 30;
+    p.style.cssText = `left:${x}px;top:${y}px;background:${color};--dx:${Math.cos(angle)*dist}px;--dy:${Math.sin(angle)*dist}px;`;
+    area.appendChild(p);
+    p.addEventListener('animationend', () => p.remove());
+  }
+}
+
+function breakCombo() {
+  combo = 0;
+  comboStat.textContent = '×1';
+}
+
+// ─── End Game ─────────────────────────────────────────────
+function endGame() {
+  gameRunning = false;
+  clearInterval(spawnTimer);
+  clearInterval(tickTimer);
+  clearTimeout(comboResetTimer);
+
+  timerBar.style.width = '0%';
+
+  const isNewHS = score > highScore;
+  if (isNewHS) {
+    highScore = score;
+    localStorage.setItem('bubblePop_hs', highScore);
+    bestEl.textContent = highScore;
+  }
+
+  finalScore.textContent = score;
+  finalBub.textContent   = bubblesPopped;
+  finalCombo.textContent = maxCombo;
+  newHsEl.style.display  = isNewHS ? 'block' : 'none';
+  screenOver.style.display = 'flex';
+}
+
+// ─── X Share ──────────────────────────────────────────────
+function shareOnX() {
+  const text = `🫧 Bubble Pop! でスコア ${score} 点達成！\n最大コンボ ×${maxCombo}、${bubblesPopped} 個の泡をポップ！\nあなたも挑戦してみて👇`;
+  const url  = encodeURIComponent(location.href);
+  const tweet = encodeURIComponent(text);
+  window.open(`https://x.com/intent/tweet?text=${tweet}&url=${url}`, '_blank', 'noopener');
+}
+</script>
+</body>
+</html>
