@@ -35,7 +35,7 @@
     color: rgba(255,255,255,0.6);
     font-size: clamp(0.85rem, 2.5vw, 1.1rem);
     text-align: center;
-    margin-bottom: 24px;
+    margin-bottom: 16px;
   }
 
   #game-area {
@@ -58,12 +58,14 @@
     pointer-events: none;
   }
 
+  /* ── HUD ── */
   .hud {
     display: flex;
     justify-content: space-between;
     align-items: center;
     width: min(480px, 96vw);
-    padding: 12px 4px;
+    padding: 10px 4px 6px;
+    gap: 8px;
   }
 
   .stat-box {
@@ -71,18 +73,28 @@
     flex: 1;
   }
 
+  .stat-box.primary {
+    flex: 2;
+  }
+
   .stat-label {
     color: rgba(255,255,255,0.5);
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     text-transform: uppercase;
     letter-spacing: 0.1em;
   }
 
   .stat-value {
     color: #fff;
-    font-size: clamp(1.4rem, 4vw, 2rem);
+    font-size: clamp(1.3rem, 3.5vw, 1.8rem);
     font-weight: 700;
     line-height: 1.1;
+  }
+
+  .stat-box.primary .stat-value {
+    font-size: clamp(2rem, 6vw, 3rem);
+    color: #a855f7;
+    text-shadow: 0 0 20px rgba(168,85,247,0.7);
   }
 
   #timer-bar-wrap {
@@ -109,10 +121,10 @@
 
   @keyframes pulse-bar {
     from { opacity: 1; }
-    to { opacity: 0.4; }
+    to   { opacity: 0.4; }
   }
 
-  /* Bubbles */
+  /* ── Bubbles ── */
   .bubble {
     position: absolute;
     border-radius: 50%;
@@ -133,10 +145,8 @@
   .bubble::after {
     content: '';
     position: absolute;
-    top: 15%;
-    left: 20%;
-    width: 30%;
-    height: 25%;
+    top: 15%; left: 20%;
+    width: 30%; height: 25%;
     background: rgba(255,255,255,0.35);
     border-radius: 50%;
     transform: rotate(-30deg);
@@ -155,28 +165,72 @@
 
   @keyframes pop {
     0%   { transform: scale(1); opacity: 1; }
-    50%  { transform: scale(1.5); opacity: 0.8; }
+    50%  { transform: scale(1.6); opacity: 0.8; }
     100% { transform: scale(0); opacity: 0; }
   }
 
-  /* Time gain popup */
+  /* ── Score popup ── */
   .score-popup {
     position: absolute;
-    color: #fff;
-    font-size: 1.4rem;
-    font-weight: 800;
+    font-weight: 900;
     pointer-events: none;
-    animation: score-float 0.8s ease-out forwards;
-    text-shadow: 0 0 12px currentColor;
     z-index: 10;
+    white-space: nowrap;
+    transform-origin: center bottom;
   }
 
-  @keyframes score-float {
-    0%   { transform: translateY(0) scale(1); opacity: 1; }
-    100% { transform: translateY(-60px) scale(0.8); opacity: 0; }
+  /* Normal score: bounce up */
+  .score-popup.normal {
+    font-size: clamp(1.6rem, 5vw, 2.2rem);
+    animation: score-normal 0.9s cubic-bezier(0.22,1,0.36,1) forwards;
+    text-shadow: 0 0 16px currentColor, 0 2px 8px rgba(0,0,0,0.5);
   }
 
-  /* Overlay screens */
+  @keyframes score-normal {
+    0%   { transform: translate(-50%, 0) scale(0.4); opacity: 1; }
+    25%  { transform: translate(-50%, -24px) scale(1.3); opacity: 1; }
+    60%  { transform: translate(-50%, -50px) scale(1.0); opacity: 1; }
+    100% { transform: translate(-50%, -80px) scale(0.7); opacity: 0; }
+  }
+
+  /* Star score: mega flashy */
+  .score-popup.star {
+    font-size: clamp(2.4rem, 7vw, 3.2rem);
+    animation: score-star 1.1s cubic-bezier(0.22,1,0.36,1) forwards;
+    text-shadow:
+      0 0 8px #fff,
+      0 0 24px currentColor,
+      0 0 48px currentColor,
+      0 2px 10px rgba(0,0,0,0.6);
+    filter: drop-shadow(0 0 12px currentColor);
+  }
+
+  @keyframes score-star {
+    0%   { transform: translate(-50%, 0) scale(0.2) rotate(-15deg); opacity: 1; }
+    20%  { transform: translate(-50%, -30px) scale(2.0) rotate(8deg); opacity: 1; }
+    45%  { transform: translate(-50%, -55px) scale(1.5) rotate(-4deg); opacity: 1; }
+    100% { transform: translate(-50%, -110px) scale(0.8) rotate(0deg); opacity: 0; }
+  }
+
+  /* Time gain sub-label */
+  .time-popup {
+    position: absolute;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #06b6d4;
+    pointer-events: none;
+    z-index: 10;
+    white-space: nowrap;
+    animation: time-float 0.8s ease-out forwards;
+    text-shadow: 0 0 10px #06b6d4;
+  }
+
+  @keyframes time-float {
+    0%   { transform: translate(-50%, 0); opacity: 1; }
+    100% { transform: translate(-50%, -40px); opacity: 0; }
+  }
+
+  /* ── Overlay screens ── */
   .overlay {
     position: absolute;
     inset: 0;
@@ -212,6 +266,18 @@
     font-size: 1rem;
     text-align: center;
     margin-top: -8px;
+  }
+
+  .overlay .result-row {
+    display: flex;
+    gap: 28px;
+    color: rgba(255,255,255,0.7);
+    font-size: 0.95rem;
+  }
+
+  .overlay .result-row span strong {
+    color: #fff;
+    font-size: 1.15rem;
   }
 
   .overlay p {
@@ -252,14 +318,11 @@
   }
 
   .btn-x svg { flex-shrink: 0; }
-
   .btn-row { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
 
-  /* Particles */
+  /* ── Particles ── */
   .particle {
     position: absolute;
-    width: 8px;
-    height: 8px;
     border-radius: 50%;
     pointer-events: none;
     animation: particle-burst 0.6s ease-out forwards;
@@ -270,7 +333,12 @@
     100% { transform: translate(var(--dx), var(--dy)) scale(0); opacity: 0; }
   }
 
-  /* Ripple effect */
+  /* Star particles are bigger */
+  .particle.star {
+    animation-duration: 0.8s;
+  }
+
+  /* ── Ripple ── */
   .ripple {
     position: absolute;
     border-radius: 50%;
@@ -284,10 +352,8 @@
     to   { transform: scale(2.5); opacity: 0; }
   }
 
-  /* Time gain flash on bar */
-  #timer-bar.gain-flash {
-    filter: brightness(1.6);
-  }
+  /* ── Timer bar gain flash ── */
+  #timer-bar.gain-flash { filter: brightness(1.7); }
 </style>
 </head>
 <body>
@@ -296,6 +362,10 @@
 <p class="subtitle">泡をタップして生き延びろ！</p>
 
 <div class="hud">
+  <div class="stat-box primary">
+    <div class="stat-label">スコア</div>
+    <div class="stat-value" id="score-display">0</div>
+  </div>
   <div class="stat-box">
     <div class="stat-label">残り時間</div>
     <div class="stat-value" id="time-display">3.0s</div>
@@ -314,7 +384,9 @@
   <!-- Start Screen -->
   <div class="overlay" id="screen-start">
     <h2>Bubble Pop! 🫧</h2>
-    <p>泡をタップして制限時間をゲット！<br>制限時間は最大5秒。<br>時間が切れたらゲームオーバー！<br>長く生き延びるほど泡が速くなる！</p>
+    <p>泡をタップして制限時間をゲット！<br>
+       制限時間は最大5秒。スコアが上がるほど泡が速くなる！<br>
+       ⭐ 星の泡はスコア2倍！</p>
     <div class="btn-row">
       <button class="btn btn-primary" id="btn-start">ゲームスタート</button>
     </div>
@@ -323,8 +395,11 @@
   <!-- Game Over Screen -->
   <div class="overlay" id="screen-gameover" style="display:none">
     <h2>ゲームオーバー！</h2>
-    <div class="big-score" id="final-survival">0.0s</div>
-    <div class="result-label">生き残った時間</div>
+    <div class="big-score" id="final-score">0</div>
+    <div class="result-label">スコア</div>
+    <div class="result-row">
+      <span>生存 <strong id="final-survival">0.0s</strong></span>
+    </div>
     <div class="btn-row">
       <button class="btn btn-primary" id="btn-retry">もう一度</button>
       <button class="btn btn-x" id="btn-share">
@@ -337,17 +412,13 @@
 
 <script>
 // ─── Config ───────────────────────────────────────────────
-const MAX_TIME      = 5.0;   // seconds (cap)
-const INIT_TIME     = 3.0;   // starting time
-const SIZE_MIN      = 40;    // smallest bubble px
-const SIZE_MAX      = 70;    // largest bubble px
-// Largest bubble → 1s gain, smallest → 2s gain (linear)
-function timeGainForSize(size) {
-  const t = Math.min(1, Math.max(0, (size - SIZE_MIN) / (SIZE_MAX - SIZE_MIN)));
-  return +(2 - t).toFixed(2); // 2.0s → 1.0s
-}
+const MAX_TIME   = 5.0;
+const INIT_TIME  = 3.0;
+const SIZE_MIN   = 40;
+const SIZE_MAX   = 70;
+
 const BUBBLE_COLORS = [
-  { bg: 'rgba(168,85,247,0.75)', glow: '#a855f7' },
+  { bg: 'rgba(168,85,247,0.75)',  glow: '#a855f7' },
   { bg: 'rgba(99,102,241,0.75)', glow: '#6366f1' },
   { bg: 'rgba(6,182,212,0.75)',  glow: '#06b6d4' },
   { bg: 'rgba(236,72,153,0.75)', glow: '#ec4899' },
@@ -357,7 +428,25 @@ const BUBBLE_COLORS = [
 ];
 const SPECIAL_CHANCE = 0.12;
 
+// Score proportional to size (large=low score, small=high score for time, but score is just size-based)
+// size 40→60pts, size 70→105pts (larger = more score)
+function scoreForSize(size) {
+  return Math.round(size * 1.5);
+}
+
+// Time gain: size 40→2.0s, size 70→1.0s (smaller = more time)
+function timeGainForSize(size) {
+  const t = Math.min(1, Math.max(0, (size - SIZE_MIN) / (SIZE_MAX - SIZE_MIN)));
+  return parseFloat((2 - t).toFixed(2));
+}
+
+// Bubble rise duration shortens as score grows
+function bubbleDuration(score) {
+  return Math.max(0.8, 2.8 - score * 0.005);
+}
+
 // ─── State ────────────────────────────────────────────────
+let score        = 0;
 let timeLeft     = INIT_TIME;
 let survivalTime = 0;
 let gameRunning  = false;
@@ -366,11 +455,13 @@ let tickTimer    = null;
 
 // ─── DOM ──────────────────────────────────────────────────
 const area          = document.getElementById('game-area');
+const scoreEl       = document.getElementById('score-display');
 const timeEl        = document.getElementById('time-display');
 const survivalEl    = document.getElementById('survival-display');
 const timerBar      = document.getElementById('timer-bar');
 const screenStart   = document.getElementById('screen-start');
 const screenOver    = document.getElementById('screen-gameover');
+const finalScoreEl  = document.getElementById('final-score');
 const finalSurvival = document.getElementById('final-survival');
 
 // ─── Start / Restart ──────────────────────────────────────
@@ -379,37 +470,34 @@ document.getElementById('btn-retry').addEventListener('click', startGame);
 document.getElementById('btn-share').addEventListener('click', shareOnX);
 
 function startGame() {
+  score        = 0;
   timeLeft     = INIT_TIME;
   survivalTime = 0;
   gameRunning  = true;
 
   updateHUD();
-  timerBar.style.width = (timeLeft / MAX_TIME * 100) + '%';
   timerBar.classList.remove('danger');
 
   screenStart.style.display = 'none';
   screenOver.style.display  = 'none';
 
-  area.querySelectorAll('.bubble, .score-popup, .particle, .ripple').forEach(el => el.remove());
+  area.querySelectorAll('.bubble, .score-popup, .time-popup, .particle, .ripple').forEach(el => el.remove());
 
   clearTimeout(spawnTimer);
   clearInterval(tickTimer);
 
-  // Spawn first bubble immediately, then keep scheduling
   spawnBubble();
   scheduleNextBubble();
 
-  // Tick every 100ms: drain time, accumulate survival time
   tickTimer = setInterval(() => {
     timeLeft     = Math.max(0, timeLeft - 0.1);
     survivalTime += 0.1;
     updateHUD();
-
     if (timeLeft <= 0) endGame();
   }, 100);
 }
 
-// ─── Spawn loop (recursive setTimeout — no re-clearing) ───
+// ─── Spawn loop ───────────────────────────────────────────
 function scheduleNextBubble() {
   if (!gameRunning) return;
   const interval = getSpawnInterval(survivalTime);
@@ -421,7 +509,6 @@ function scheduleNextBubble() {
 }
 
 function getSpawnInterval(elapsed) {
-  // Start at 900ms, shrink to 250ms min as time goes on
   return Math.max(250, 900 - elapsed * 20);
 }
 
@@ -430,12 +517,14 @@ function spawnBubble() {
   if (!gameRunning) return;
 
   const isSpecial = Math.random() < SPECIAL_CHANCE;
-  const color  = BUBBLE_COLORS[Math.floor(Math.random() * BUBBLE_COLORS.length)];
-  const size   = isSpecial ? 52 + Math.random() * 16 : SIZE_MIN + Math.random() * (SIZE_MAX - SIZE_MIN);
+  const color = BUBBLE_COLORS[Math.floor(Math.random() * BUBBLE_COLORS.length)];
+  const size  = isSpecial
+    ? 52 + Math.random() * 16
+    : SIZE_MIN + Math.random() * (SIZE_MAX - SIZE_MIN);
 
-  // Float duration gets shorter as survival time grows (faster bubbles)
-  const baseDuration = Math.max(0.9, 2.8 - survivalTime * 0.05);
-  const duration = baseDuration + Math.random() * 0.6;
+  // Speed based on current score
+  const base     = bubbleDuration(score);
+  const duration = base + Math.random() * 0.5;
 
   const areaW = area.clientWidth;
   const x = size / 2 + Math.random() * (areaW - size);
@@ -447,13 +536,14 @@ function spawnBubble() {
     width:${size}px; height:${size}px;
     left:${x - size/2}px; top:${y - size/2}px;
     background: radial-gradient(circle at 35% 35%, rgba(255,255,255,0.25), ${color.bg});
-    box-shadow: 0 0 ${isSpecial ? 20 : 12}px ${color.glow}, inset 0 0 8px rgba(255,255,255,0.15);
+    box-shadow: 0 0 ${isSpecial ? 24 : 12}px ${color.glow}, inset 0 0 8px rgba(255,255,255,0.15);
     animation-duration: ${duration}s;
     font-size: ${size * 0.42}px;
   `;
-  b.textContent = isSpecial ? '⭐' : '';
-  b.dataset.glow = color.glow;
-  b.dataset.size = size;
+  b.textContent    = isSpecial ? '⭐' : '';
+  b.dataset.glow   = color.glow;
+  b.dataset.size   = size;
+  b.dataset.special = isSpecial ? '1' : '0';
 
   b.addEventListener('pointerdown', onBubblePop, { passive: true });
   area.appendChild(b);
@@ -470,36 +560,51 @@ function onBubblePop(e) {
   if (b.classList.contains('popped')) return;
   b.classList.add('popped');
 
-  // Add time based on bubble size (capped at MAX_TIME)
-  const gain = timeGainForSize(parseFloat(b.dataset.size));
+  const isSpecial = b.dataset.special === '1';
+  const sz        = parseFloat(b.dataset.size);
+  const glow      = b.dataset.glow;
+
+  // Score (star = 2x)
+  const pts = scoreForSize(sz) * (isSpecial ? 2 : 1);
+  score += pts;
+
+  // Time gain (capped at MAX_TIME)
+  const gain = timeGainForSize(sz);
   timeLeft = Math.min(MAX_TIME, timeLeft + gain);
+
   updateHUD();
 
-  // Flash the bar
+  // Flash timer bar
   timerBar.classList.add('gain-flash');
   setTimeout(() => timerBar.classList.remove('gain-flash'), 150);
 
-  // Use pointer coordinates for accurate effect position
+  // Effect origin = pointer position
   const areaRect = area.getBoundingClientRect();
   const px = e.clientX - areaRect.left;
   const py = e.clientY - areaRect.top;
 
-  showPopup(px, py, '+' + gain + 's', b.dataset.glow);
-  spawnParticles(px, py, b.dataset.glow);
+  // Score popup (primary, big)
+  showScorePopup(px, py, '+' + pts, glow, isSpecial);
 
-  // Ripple centered on tap point
-  const sz = parseFloat(b.dataset.size);
+  // Time popup (secondary, small, slightly offset)
+  showTimePopup(px, py + 32, '+' + gain + 's');
+
+  // Particles
+  spawnParticles(px, py, glow, isSpecial);
+
+  // Ripple
   const rip = document.createElement('div');
   rip.className = 'ripple';
-  rip.style.cssText = `width:${sz}px;height:${sz}px;left:${px - sz/2}px;top:${py - sz/2}px;border-color:${b.dataset.glow};`;
+  rip.style.cssText = `width:${sz}px;height:${sz}px;left:${px - sz/2}px;top:${py - sz/2}px;border-color:${glow};`;
   area.appendChild(rip);
   rip.addEventListener('animationend', () => rip.remove());
 
   b.addEventListener('animationend', () => b.remove(), { once: true });
 }
 
-// ─── HUD Update ───────────────────────────────────────────
+// ─── HUD ──────────────────────────────────────────────────
 function updateHUD() {
+  scoreEl.textContent    = score;
   timeEl.textContent     = timeLeft.toFixed(1) + 's';
   survivalEl.textContent = survivalTime.toFixed(1) + 's';
 
@@ -509,23 +614,40 @@ function updateHUD() {
   else           timerBar.classList.remove('danger');
 }
 
-// ─── Helpers ──────────────────────────────────────────────
-function showPopup(x, y, text, color) {
+// ─── Effect helpers ───────────────────────────────────────
+function showScorePopup(x, y, text, color, isStar) {
   const el = document.createElement('div');
-  el.className = 'score-popup';
+  el.className = 'score-popup ' + (isStar ? 'star' : 'normal');
   el.textContent = text;
-  el.style.cssText = `left:${x - 24}px;top:${y - 10}px;color:${color};`;
+  el.style.cssText = `left:${x}px; top:${y - 10}px; color:${color};`;
   area.appendChild(el);
   el.addEventListener('animationend', () => el.remove());
 }
 
-function spawnParticles(x, y, color) {
-  for (let i = 0; i < 8; i++) {
+function showTimePopup(x, y, text) {
+  const el = document.createElement('div');
+  el.className = 'time-popup';
+  el.textContent = text;
+  el.style.cssText = `left:${x}px; top:${y}px;`;
+  area.appendChild(el);
+  el.addEventListener('animationend', () => el.remove());
+}
+
+function spawnParticles(x, y, color, isStar) {
+  const count = isStar ? 16 : 8;
+  const size  = isStar ? '12px' : '8px';
+  for (let i = 0; i < count; i++) {
     const p = document.createElement('div');
-    p.className = 'particle';
-    const angle = (i / 8) * Math.PI * 2;
-    const dist = 30 + Math.random() * 30;
-    p.style.cssText = `left:${x}px;top:${y}px;background:${color};--dx:${Math.cos(angle)*dist}px;--dy:${Math.sin(angle)*dist}px;`;
+    p.className = 'particle' + (isStar ? ' star' : '');
+    const angle = (i / count) * Math.PI * 2;
+    const dist  = isStar ? 50 + Math.random() * 50 : 30 + Math.random() * 30;
+    p.style.cssText = `
+      left:${x}px; top:${y}px;
+      width:${size}; height:${size};
+      background:${isStar ? (i % 2 === 0 ? '#ffd700' : color) : color};
+      --dx:${Math.cos(angle) * dist}px;
+      --dy:${Math.sin(angle) * dist}px;
+    `;
     area.appendChild(p);
     p.addEventListener('animationend', () => p.remove());
   }
@@ -541,13 +663,14 @@ function endGame() {
   timerBar.style.width = '0%';
   timerBar.classList.remove('danger');
 
+  finalScoreEl.textContent  = score;
   finalSurvival.textContent = survivalTime.toFixed(1) + 's';
-  screenOver.style.display = 'flex';
+  screenOver.style.display  = 'flex';
 }
 
 // ─── X Share ──────────────────────────────────────────────
 function shareOnX() {
-  const text = `🫧 Bubble Pop! で ${survivalTime.toFixed(1)}秒 生き残った！\n泡をタップして制限時間をゲットするサバイバルゲーム！\nあなたも挑戦してみて👇`;
+  const text = `🫧 Bubble Pop! でスコア ${score} 点！${survivalTime.toFixed(1)}秒生き残った！\n泡をタップして制限時間をゲットするサバイバルゲーム！\nあなたも挑戦してみて👇`;
   const url   = encodeURIComponent(location.href);
   const tweet = encodeURIComponent(text);
   window.open(`https://x.com/intent/tweet?text=${tweet}&url=${url}`, '_blank', 'noopener');
