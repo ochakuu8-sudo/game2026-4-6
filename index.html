@@ -73,6 +73,10 @@
     text-shadow: 0 1px 3px rgba(0,0,0,.4);
     animation: float-up linear forwards;
     will-change: transform, opacity; user-select: none; -webkit-user-select: none;
+    /* Extend hit area beyond visual edge */
+    border: 8px solid transparent;
+    background-clip: padding-box;
+    box-sizing: content-box;
   }
   .bubble::after {
     content: ''; position: absolute; top:15%; left:20%;
@@ -359,6 +363,7 @@ const INIT_MAX_TIME = 7.0;   // starting time cap
 const MIN_MAX_TIME  = 2.0;   // minimum time cap
 const SIZE_MIN = 40, SIZE_MAX = 70;
 const SPECIAL_CHANCE = 0.12;
+const HIT_PAD = 8; // transparent border extending tap area (px)
 const BUBBLE_COLORS = [
   { bg:'rgba(168,85,247,.75)',  glow:'#a855f7' },
   { bg:'rgba(99,102,241,.75)',  glow:'#6366f1' },
@@ -479,7 +484,7 @@ function spawnBubble() {
   b.className = 'bubble';
   b.style.cssText = `
     width:${size}px;height:${size}px;
-    left:${x - size/2}px;top:${y - size/2}px;
+    left:${x - size/2 - HIT_PAD}px;top:${y - size/2 - HIT_PAD}px;
     background:radial-gradient(circle at 35% 35%,rgba(255,255,255,.25),${color.bg});
     box-shadow:0 0 ${isSpecial?24:12}px ${color.glow},inset 0 0 8px rgba(255,255,255,.15);
     animation-duration:${duration}s;font-size:${size*.42}px;
