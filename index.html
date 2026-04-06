@@ -213,7 +213,7 @@
   </div>
   <div class="stat-box">
     <div class="stat-label">残り時間</div>
-    <div class="stat-value" id="time-display">7.0s</div>
+    <div class="stat-value" id="time-display">100</div>
   </div>
 </div>
 
@@ -359,8 +359,8 @@ const Sound = (() => {
 // ═══════════════════════════════════════════
 //  CONFIG
 // ═══════════════════════════════════════════
-const INIT_MAX_TIME = 7.0;   // starting time cap
-const MIN_MAX_TIME  = 2.0;   // minimum time cap
+const MAX_TIME  = 7.0;   // fixed time cap (seconds internally)
+const MAX_UNITS = 100;   // display unit (MAX_TIME = 100)
 const SIZE_MIN = 40, SIZE_MAX = 70;
 const SPECIAL_CHANCE = 0.12;
 const HIT_PAD = 8; // transparent border extending tap area (px)
@@ -375,10 +375,10 @@ const BUBBLE_COLORS = [
 ];
 
 // ─── Helpers ──────────────────────────────
-function getCurrentMaxTime() {
-  // Cap decreases from 7s to 2s over time
-  return Math.max(MIN_MAX_TIME, INIT_MAX_TIME - survivalTime * 0.1);
-}
+// Drain rate increases with elapsed time: 1x at start, grows proportionally
+function drainRate() { return 1 + survivalTime * 0.02; }
+// Convert internal seconds to display units (0-100)
+function toUnits(sec) { return Math.round(sec / MAX_TIME * MAX_UNITS); }
 function scoreForSize(size) { return Math.round(size * 1.5); }
 function timeGainForSize(size) {
   const t = Math.min(1, Math.max(0, (size - SIZE_MIN) / (SIZE_MAX - SIZE_MIN)));
@@ -419,7 +419,7 @@ function startGame() {
   Sound.init(); // unlock AudioContext on user gesture
   Sound.start();
   score = 0; combo = 0; maxCombo = 0;
-  timeLeft = INIT_MAX_TIME; survivalTime = 0;
+  timeLeft = MAX_TIME; survivalTime = 0;
   lastDangerHalf = -1;
   gameRunning = true;
 
@@ -434,12 +434,12 @@ function startGame() {
   scheduleNextBubble();
 
   tickTimer = setInterval(() => {
-    timeLeft     = Math.max(0, timeLeft - 0.1);
+    timeLeft     = Math.max(0, timeLeft - drainRate() * 0.1);
     survivalTime += 0.1;
     updateHUD();
 
-    // Danger heartbeat when < 1.5s
-    if (timeLeft < 1.5) {
+    // Danger heartbeat when < 30 units (≈2.1s)
+    if (timeLeft < MAX_TIME * 0.3) {
       const half = Math.floor(survivalTime * 2);
       if (half !== lastDangerHalf) { lastDangerHalf = half; Sound.danger(); }
     }
@@ -549,9 +549,9 @@ function onBubblePop(e) {
   const pts = scoreForSize(sz) * (isSpecial ? 2 : 1);
   score += pts;
 
-  // ── Time gain (capped at current max) ──
+  // ── Time gain (capped at MAX_TIME) ──
   const gain = timeGainForSize(sz);
-  timeLeft = Math.min(getCurrentMaxTime(), timeLeft + gain);
+  timeLeft = Math.min(MAX_TIME, timeLeft + gain);
 
   updateHUD();
 
@@ -565,7 +565,7 @@ function onBubblePop(e) {
   const py = e.clientY - ar.top;
 
   showScorePopup(px, py, '+' + pts, glow, isSpecial);
-  showTimePopup(px, py + 34, '+' + gain + 's');
+  showTimePopup(px, py + 34, '+' + toUnits(gain));
   spawnParticles(px, py, glow, isSpecial);
 
   const rip = document.createElement('div');
@@ -583,13 +583,11 @@ function onBubblePop(e) {
 function updateHUD() {
   scoreEl.textContent = score;
   comboEl.textContent = '×' + combo;
-  timeEl.textContent  = timeLeft.toFixed(1) + 's';
+  timeEl.textContent  = toUnits(timeLeft);
 
-  // Bar: timeLeft relative to current max (so bar = "how full is your time tank")
-  const maxT = getCurrentMaxTime();
-  timerBar.style.width = Math.min(100, timeLeft / maxT * 100) + '%';
-  if (timeLeft / maxT < 0.3) timerBar.classList.add('danger');
-  else                        timerBar.classList.remove('danger');
+  timerBar.style.width = (timeLeft / MAX_TIME * 100) + '%';
+  if (timeLeft < MAX_TIME * 0.3) timerBar.classList.add('danger');
+  else                           timerBar.classList.remove('danger');
 }
 
 // ═══════════════════════════════════════════
