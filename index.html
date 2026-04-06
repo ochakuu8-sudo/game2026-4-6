@@ -378,7 +378,7 @@ const Sound = (() => {
 // ═══════════════════════════════════════════
 //  CONFIG
 // ═══════════════════════════════════════════
-const MAX_TIME  = 7.0;   // fixed time cap (seconds internally)
+const MAX_TIME  = 20.0;  // fixed time cap (seconds internally)
 const MAX_UNITS = 100;   // display unit (MAX_TIME = 100)
 const SIZE_MIN = 40, SIZE_MAX = 70;
 const SPECIAL_CHANCE = 0.12;
@@ -400,7 +400,7 @@ function toUnits(sec) { return Math.round(sec / MAX_TIME * MAX_UNITS); }
 function scoreForSize(size) { return Math.round((SIZE_MIN + SIZE_MAX - size) * 1.5); }
 function timeGainForSize(size) {
   const t = Math.min(1, Math.max(0, (size - SIZE_MIN) / (SIZE_MAX - SIZE_MIN)));
-  return parseFloat((1.7 - 0.8 * t).toFixed(2));
+  return parseFloat((0.6 - 0.3 * t).toFixed(2));
 }
 // Combo speeds up bubbles and spawn: multiplier < 1 = faster
 function comboMult() { return Math.max(0.4, 1 - combo * 0.025); }
