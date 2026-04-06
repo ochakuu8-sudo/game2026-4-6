@@ -26,7 +26,7 @@
     text-align: center; margin-bottom: 16px;
   }
   #game-area {
-    position: relative; width: min(480px,96vw); height: min(560px,62vh);
+    position: relative; width: min(480px,96vw,calc(62dvh * 6 / 7)); aspect-ratio: 6/7;
     background: rgba(255,255,255,.04); border-radius: 24px;
     border: 1px solid rgba(255,255,255,.12); overflow: hidden;
     box-shadow: 0 8px 48px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.1);
@@ -39,7 +39,7 @@
   }
   .hud {
     display: flex; justify-content: space-between; align-items: center;
-    width: min(480px,96vw); padding: 10px 4px 6px; gap: 8px;
+    width: min(480px,96vw,calc(62dvh * 6 / 7)); padding: 10px 4px 6px; gap: 8px;
   }
   .stat-box { text-align: center; flex: 1; }
   .stat-box.primary { flex: 2; }
