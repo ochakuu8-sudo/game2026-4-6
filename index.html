@@ -49,21 +49,48 @@
     font-size: clamp(2rem,6vw,3rem); color: #a855f7;
     text-shadow: 0 0 20px rgba(168,85,247,.7);
   }
-  #timer-bar-wrap {
-    width: min(480px,96vw); height: 8px; background: rgba(255,255,255,.1);
-    border-radius: 4px; overflow: hidden; margin-bottom: 10px;
+  /* ── Water background ── */
+  #water {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 100%;
+    z-index: 0;
+    overflow: hidden;
+    border-radius: 0 0 24px 24px;
+    background: linear-gradient(to top,
+      rgba(6,182,212,.45) 0%,
+      rgba(99,102,241,.25) 60%,
+      rgba(99,102,241,.08) 100%);
+    transition: height .12s ease-out, background 1s;
   }
-  #timer-bar {
-    height: 100%; width: 100%;
-    background: linear-gradient(90deg,#a855f7,#06b6d4);
-    border-radius: 4px; transition: width .1s linear, background .5s;
+  #water.danger {
+    background: linear-gradient(to top,
+      rgba(239,68,68,.5) 0%,
+      rgba(249,115,22,.3) 60%,
+      rgba(249,115,22,.08) 100%);
   }
-  #timer-bar.danger {
-    background: linear-gradient(90deg,#ef4444,#f97316);
-    animation: pulse-bar .4s ease-in-out infinite alternate;
+  /* Wave surface: two shifting ovals clipped by overflow:hidden */
+  #water::before, #water::after {
+    content: '';
+    position: absolute;
+    left: -25%; top: -28px;
+    width: 150%; height: 56px;
+    border-radius: 50%;
+    animation: wave-drift 3s ease-in-out infinite;
   }
-  @keyframes pulse-bar { from{opacity:1} to{opacity:.4} }
-  #timer-bar.gain-flash { filter: brightness(1.8); }
+  #water::before { background: rgba(255,255,255,.18); }
+  #water::after  {
+    background: rgba(255,255,255,.10);
+    height: 40px; top: -18px;
+    animation-duration: 4.5s;
+    animation-direction: reverse;
+  }
+  @keyframes wave-drift {
+    0%,100% { transform: translateX(-7%); }
+    50%     { transform: translateX(7%); }
+  }
+  /* Ensure bubbles and effects render above water */
+  .bubble { z-index: 1; }
 
   /* Bubbles */
   .bubble {
@@ -217,9 +244,8 @@
   </div>
 </div>
 
-<div id="timer-bar-wrap"><div id="timer-bar"></div></div>
-
 <div id="game-area">
+  <div id="water"></div>
   <div class="overlay" id="screen-start">
     <h2>Bubble Pop! 🫧</h2>
     <p>泡をタップして制限時間をゲット！<br>
@@ -401,7 +427,7 @@ const area         = document.getElementById('game-area');
 const scoreEl      = document.getElementById('score-display');
 const comboEl      = document.getElementById('combo-display');
 const timeEl       = document.getElementById('time-display');
-const timerBar     = document.getElementById('timer-bar');
+const waterEl      = document.getElementById('water');
 const screenStart  = document.getElementById('screen-start');
 const screenOver   = document.getElementById('screen-gameover');
 const finalScoreEl = document.getElementById('final-score');
@@ -424,7 +450,7 @@ function startGame() {
   gameRunning = true;
 
   updateHUD();
-  timerBar.classList.remove('danger');
+  waterEl.classList.remove('danger');
   screenStart.style.display = 'none';
   screenOver.style.display  = 'none';
   area.querySelectorAll('.bubble,.score-popup,.time-popup,.particle,.ripple,.combo-milestone').forEach(e=>e.remove());
@@ -555,9 +581,9 @@ function onBubblePop(e) {
 
   updateHUD();
 
-  // Flash bar
-  timerBar.classList.add('gain-flash');
-  setTimeout(() => timerBar.classList.remove('gain-flash'), 150);
+  // Flash water
+  waterEl.style.filter = 'brightness(1.5)';
+  setTimeout(() => waterEl.style.filter = '', 150);
 
   // ── Effects at tap position ──
   const ar = area.getBoundingClientRect();
@@ -585,9 +611,10 @@ function updateHUD() {
   comboEl.textContent = '×' + combo;
   timeEl.textContent  = toUnits(timeLeft);
 
-  timerBar.style.width = (timeLeft / MAX_TIME * 100) + '%';
-  if (timeLeft < MAX_TIME * 0.3) timerBar.classList.add('danger');
-  else                           timerBar.classList.remove('danger');
+  const pct = timeLeft / MAX_TIME * 100;
+  waterEl.style.height = pct + '%';
+  if (pct < 30) waterEl.classList.add('danger');
+  else          waterEl.classList.remove('danger');
 }
 
 // ═══════════════════════════════════════════
@@ -645,8 +672,8 @@ function endGame() {
   if (!gameRunning) return;
   gameRunning = false;
   clearTimeout(spawnTimer); clearInterval(tickTimer);
-  timerBar.style.width = '0%';
-  timerBar.classList.remove('danger');
+  waterEl.style.height = '0%';
+  waterEl.classList.remove('danger');
   Sound.gameOver();
   finalScoreEl.textContent = score;
   finalSurvEl.textContent  = survivalTime.toFixed(1) + 's';
