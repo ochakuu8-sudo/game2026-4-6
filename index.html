@@ -397,7 +397,7 @@ const BUBBLE_COLORS = [
 function drainRate() { return 1 + survivalTime * 0.03; }
 // Convert internal seconds to display units (0-100)
 function toUnits(sec) { return Math.round(sec / MAX_TIME * MAX_UNITS); }
-function scoreForSize(size) { return Math.round(size * 1.5); }
+function scoreForSize(size) { return Math.round((SIZE_MIN + SIZE_MAX - size) * 1.5); }
 function timeGainForSize(size) {
   const t = Math.min(1, Math.max(0, (size - SIZE_MIN) / (SIZE_MAX - SIZE_MIN)));
   return parseFloat((2 - t).toFixed(2));
