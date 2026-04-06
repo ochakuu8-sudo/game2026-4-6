@@ -376,7 +376,7 @@ const BUBBLE_COLORS = [
 
 // ─── Helpers ──────────────────────────────
 // Drain rate increases with elapsed time: 1x at start, grows proportionally
-function drainRate() { return 1 + survivalTime * 0.02; }
+function drainRate() { return 1 + survivalTime * 0.03; }
 // Convert internal seconds to display units (0-100)
 function toUnits(sec) { return Math.round(sec / MAX_TIME * MAX_UNITS); }
 function scoreForSize(size) { return Math.round(size * 1.5); }
@@ -385,7 +385,7 @@ function timeGainForSize(size) {
   return parseFloat((2 - t).toFixed(2));
 }
 // Combo speeds up bubbles and spawn: multiplier < 1 = faster
-function comboMult() { return Math.max(0.35, 1 - combo * 0.04); }
+function comboMult() { return Math.max(0.4, 1 - combo * 0.025); }
 
 // ═══════════════════════════════════════════
 //  STATE
