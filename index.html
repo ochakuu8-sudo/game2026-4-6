@@ -55,39 +55,36 @@
     bottom: 0; left: 0; right: 0;
     height: 100%;
     z-index: 0;
-    overflow: hidden;
     border-radius: 0 0 24px 24px;
     background: linear-gradient(to top,
-      rgba(6,182,212,.45) 0%,
-      rgba(99,102,241,.25) 60%,
-      rgba(99,102,241,.08) 100%);
-    transition: height .12s ease-out, background 1s;
+      rgba(6,130,200,.6) 0%,
+      rgba(14,165,233,.4) 60%,
+      rgba(56,189,248,.2) 100%);
+    transition: height .15s ease-out;
   }
   #water.danger {
     background: linear-gradient(to top,
-      rgba(239,68,68,.5) 0%,
-      rgba(249,115,22,.3) 60%,
-      rgba(249,115,22,.08) 100%);
+      rgba(185,28,28,.65) 0%,
+      rgba(220,38,38,.45) 60%,
+      rgba(239,68,68,.2) 100%);
   }
-  /* Wave surface: two shifting ovals clipped by overflow:hidden */
-  #water::before, #water::after {
+  /* Scrolling SVG wave line at the water surface */
+  #water::before {
     content: '';
     position: absolute;
-    left: -25%; top: -28px;
-    width: 150%; height: 56px;
-    border-radius: 50%;
-    animation: wave-drift 3s ease-in-out infinite;
+    top: -10px; left: 0;
+    width: 100%; height: 20px;
+    background-repeat: repeat-x;
+    background-size: 160px 20px;
+    background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='20'><path d='M0,10 Q40,1 80,10 Q120,19 160,10' stroke='%2338BDF8' stroke-width='2.5' fill='none'/></svg>");
+    animation: wave-scroll 2.5s linear infinite;
   }
-  #water::before { background: rgba(255,255,255,.18); }
-  #water::after  {
-    background: rgba(255,255,255,.10);
-    height: 40px; top: -18px;
-    animation-duration: 4.5s;
-    animation-direction: reverse;
+  #water.danger::before {
+    background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='20'><path d='M0,10 Q40,1 80,10 Q120,19 160,10' stroke='%23F87171' stroke-width='2.5' fill='none'/></svg>");
   }
-  @keyframes wave-drift {
-    0%,100% { transform: translateX(-7%); }
-    50%     { transform: translateX(7%); }
+  @keyframes wave-scroll {
+    from { background-position-x: 0; }
+    to   { background-position-x: 160px; }
   }
   /* Ensure bubbles and effects render above water */
   .bubble { z-index: 1; }
@@ -580,10 +577,6 @@ function onBubblePop(e) {
   timeLeft = Math.min(MAX_TIME, timeLeft + gain);
 
   updateHUD();
-
-  // Flash water
-  waterEl.style.filter = 'brightness(1.5)';
-  setTimeout(() => waterEl.style.filter = '', 150);
 
   // ── Effects at tap position ──
   const ar = area.getBoundingClientRect();
