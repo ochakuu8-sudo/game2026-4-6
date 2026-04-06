@@ -233,7 +233,7 @@
   </div>
   <div class="stat-box">
     <div class="stat-label">残り時間</div>
-    <div class="stat-value" id="time-display">20</div>
+    <div class="stat-value" id="time-display">15</div>
   </div>
 </div>
 
@@ -378,8 +378,8 @@ const Sound = (() => {
 // ═══════════════════════════════════════════
 //  CONFIG
 // ═══════════════════════════════════════════
-const MAX_TIME  = 20.0;  // fixed time cap (seconds internally)
-const MAX_UNITS = 20;    // display unit (MAX_TIME = 20)
+const MAX_TIME  = 15.0;  // fixed time cap (seconds internally)
+const MAX_UNITS = 15;    // display unit (MAX_TIME = 15)
 const SIZE_MIN = 40, SIZE_MAX = 70;
 const SPECIAL_CHANCE = 0.12;
 const BUBBLE_COLORS = [
@@ -400,7 +400,7 @@ function toUnits(sec) { return Math.round(sec / MAX_TIME * MAX_UNITS); }
 function scoreForSize(size) { return Math.round((SIZE_MIN + SIZE_MAX - size) * 1.5); }
 function timeGainForSize(size) {
   const t = Math.min(1, Math.max(0, (size - SIZE_MIN) / (SIZE_MAX - SIZE_MIN)));
-  return parseFloat(((2 - t) / 3).toFixed(2));
+  return parseFloat((1.0 - t * 0.5).toFixed(2)); // 小泡:1.0s ～ 大泡:0.5s
 }
 // Combo speeds up bubbles and spawn: multiplier < 1 = faster
 function comboMult() { return Math.max(0.4, 1 - combo * 0.025); }
